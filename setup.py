@@ -9,7 +9,7 @@ data_files = []
 requires = []
 
 setup(
-	name='',
+	name='graph_coloring',
 	version='1.0',
 	# declare your packages
 	packages=find_packages(where='src', exclude=("test", )),
