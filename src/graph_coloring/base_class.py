@@ -7,10 +7,11 @@ from gym import Space, Env
 from gym.spaces import Discrete
 import numpy as np
 
-from graph_coloring.visualizer import draw_coloring, Visualizer
+from graph_coloring.visualizer import Visualizer
 
 
 class GraphColoringMDPSpace(space.finiteTimeSpace):
+	"""MDP space representation of the coloring problem."""
 	def __init__(self, graph: nx.Graph, build_states=True):
 		self.graph = graph
 		actions = range(len(graph))
@@ -89,6 +90,7 @@ class GraphColoringMDPSpace(space.finiteTimeSpace):
 
 
 class GraphColoringActionSpace(Discrete):
+	"""GYM AI representation of the aqction space for the graph coloring problem."""
 	def __init__(self, n, env: 'GraphColoringEnv'):
 		super().__init__(n)
 		self.env = env
@@ -108,6 +110,7 @@ class GraphColoringActionSpace(Discrete):
 
 
 class GraphColoringStateSpace(Space):
+	"""GYM AI representation of the state space for the graph coloring problem."""
 	def __init__(self, graph: nx.Graph):
 		super().__init__()
 		self.graph = graph
@@ -138,6 +141,7 @@ class GraphColoringStateSpace(Space):
 
 
 class GraphColoringEnv(Env):
+	"""GYM AI graph coloring class."""
 
 	def __init__(self, graph: nx.Graph):
 		self.graph = graph
@@ -149,6 +153,22 @@ class GraphColoringEnv(Env):
 		self._done = False
 
 	def simulate_transition_state(self, action, state=None):
+		"""
+		Simulates a state transition without changing the current state.
+
+		Parameters
+		----------
+		action: int
+			The action that wants to be simulated.
+		state: Coloring
+			The state in which the action wants to be simulated.
+
+		Returns
+		-------
+		new_state
+			Returns the state that is achieved by taking action in state.
+
+		"""
 		if state is None:
 			cur_state = self.observation_space.current_state
 		else:
@@ -161,12 +181,33 @@ class GraphColoringEnv(Env):
 		return values[index]
 
 	def step(self, action):
+		"""
+		Given an action takes a step in the specified environment
+
+		Parameters
+		----------
+		action: int
+			An action to be takin in the current state.
+
+		Returns
+		-------
+		Tuple
+			next_state:
+			The resulting state of taking the given action in the previous step
+			reward:
+			The resulting reward of taking the given action in the previous step
+			done:
+			Boolean flag that indicates if the arrived state is a terminal state
+			info:
+			Additional information.
+		"""
 		cur_state = self.observation_space.current_state
 		next_state: Coloring = self.simulate_transition_state(action)
 		reward = self.dynamics.reward_(cur_state, next_state, action)
 
 		info = {'state': next_state, 'colored_nodes': next_state.colored_nodes}
-		if next_state.is_coloring():
+
+		if next_state.is_coloring(soft=True):
 			done = True
 		else:
 			done = False
@@ -177,11 +218,13 @@ class GraphColoringEnv(Env):
 		return next_state, reward, done, info
 
 	def reset(self):
+		"""Resets the environment to its initial state."""
 		self.observation_space.reset_observation_space()
 		self._done = False
 		return self.observation_space.current_state
 
 	def render(self, mode='human'):
+		"""Renders the current state."""
 		# just raise an exception
 		if mode == 'ansi':
 			print(self.observation_space.current_state)
@@ -195,13 +238,38 @@ class GraphColoringEnv(Env):
 
 
 class Coloring(list):
+	"""
+	Represents the base clas for a coloring of a graph.
+
+	It represents both a partial and a full coloring.
+
+
+	Attributes
+	----------
+	graph: nx.Graph
+		A pointer to the graph that is coloring
+	colored_nodes: set
+		A set with the colored nodes.
+	"""
 	def __init__(self, graph: nx.Graph, *args, **kwarg):
 		super().__init__(*args, **kwarg)
 		self._coloring = dict()
 		self.graph: nx.Graph = graph
 		self.colored_nodes = set()
 
-	def color_node(self, node: Any, color: int, strict=True):
+	def color_node(self, node: Any, color: int, strict=False):
+		"""
+
+		Parameters
+		----------
+		node: Any
+			The node that wants to be colored.
+		color: int
+			The color that wants to be used for the given node.
+		strict: bool
+			Boolean flag that when set to True checks if the node can actually be colored with the given color.
+			If False, the node will be colored anyway.
+		"""
 		if strict:
 			return self._color_node_strict(node, color)
 		else:
@@ -222,9 +290,18 @@ class Coloring(list):
 		return hash(f'{self.graph}-{self}')
 
 	def get_color(self, node):
+		"""Returns the color of the given node."""
 		return self(node)
 
 	def conflicting_pairs(self):
+		"""
+		Returns the conflicting paris in the coloring, if any.
+
+		Returns
+		-------
+		List
+			A list with the conflicting pairs in the specified coloring, i.e., adjacent nodes that have the same color.
+		"""
 		c_pairs = []
 		for same_color in self:
 			for (i, j) in product(same_color, same_color):
@@ -232,19 +309,38 @@ class Coloring(list):
 					c_pairs.append((i, j))
 		return c_pairs
 
-	def is_coloring(self):
-		is_partition = set(self._coloring.keys()) == set(self.graph.nodes)
-		zero_conflict = len(self.conflicting_pairs()) == 0
+	def is_coloring(self, soft=False):
+		"""
+		Checks if the current function is an actual coloring.
 
-		return is_partition and zero_conflict
+		Parameters
+		----------
+		soft: bool
+			Boolean flag that when set to False only checks if it is a partially colored graph.
+			Otherwise checks that the number of conflicting pairs equals to zero.
+
+		Returns
+		-------
+		bool
+			True if the specified function is a coloring for graph, False otherwise.
+		"""
+		if soft:
+			return len(self.colored_nodes) == len(self.graph)
+		else:
+			is_partition = set(self._coloring.keys()) == set(self.graph.nodes)
+			zero_conflict = len(self.conflicting_pairs()) == 0
+
+			return is_partition and zero_conflict
 
 	def number_of_colors(self):
+		"""Returns the number of used colors"""
 		if self.is_coloring():
 			return len(self)
 		else:
 			return float('inf')
 
 	def check_if_node_can_be_colored(self, node: Any, color: int):
+		"""Check if the given node can be colored with color."""
 		flag = True
 		if color >= len(self):
 			return flag
@@ -256,6 +352,7 @@ class Coloring(list):
 		return flag
 
 	def feasible_colors(self, node: Any) -> List[int]:
+		"""Returns a list with the colors that could be used to color teh given node."""
 		feasible_colors = []
 
 		for i, _ in enumerate(self):

@@ -2,7 +2,6 @@ from typing import Optional
 
 from .base import BaseHeuristic
 from graph_coloring.base_class import Coloring
-import networkx as nx
 from copy import copy
 
 
@@ -10,7 +9,7 @@ class GreedyColoring(BaseHeuristic):
 	def __init__(self, graph, **kwargs):
 		super().__init__(graph, **kwargs)
 
-	def color_graph(self, partial_coloring: Optional = None) -> Coloring:
+	def run_heuristic(self, partial_coloring: Optional = None) -> Coloring:
 		graph = self.graph
 		if partial_coloring is None:
 			coloring = Coloring(graph)

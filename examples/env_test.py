@@ -1,4 +1,5 @@
 from graph_coloring.base_class import GraphColoringEnv
+import networkx as nx
 
 
 def random_run(graph):
@@ -16,7 +17,7 @@ def random_run(graph):
 
 
 if __name__ == '__main__':
-	# g = nx.generators.random_graphs.erdos_renyi_graph(100, 0.2, seed=754)
+	g = nx.generators.random_graphs.erdos_renyi_graph(10, 0.2, seed=754)
 	random_run(g)
 
 

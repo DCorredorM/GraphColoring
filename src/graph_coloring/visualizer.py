@@ -15,7 +15,8 @@ def draw_coloring(graph: nx.Graph,
                   output_path=_default_output_path,
                   out_name=_default_out_name,
                   legend=True,
-                  ax=None):
+                  ax=None,
+                  show=False):
     colors = [coloring.get_color(n) for n in graph.nodes]
     if pos is None:
         pos = nx.spring_layout(graph)
@@ -49,6 +50,9 @@ def draw_coloring(graph: nx.Graph,
 
     if save:
         plt.savefig(os.path.join(output_path, f'{out_name}{len(graph)}.pdf'))
+
+    if show:
+        plt.show()
 
 
 class Visualizer:

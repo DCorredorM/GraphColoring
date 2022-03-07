@@ -4,9 +4,9 @@ import networkx as nx
 
 
 if __name__ == '__main__':
-	g = nx.generators.random_graphs.erdos_renyi_graph(100, 0.2, seed=754)
+	graph = nx.generators.random_graphs.erdos_renyi_graph(100, 0.2, seed=754)
 	greedy_c = GreedyColoring()
 
-	coloring = greedy_c.color_graph(g)
+	coloring = greedy_c.run_heuristic(graph)
 
 	draw_coloring(g, coloring, out_name='greedy')

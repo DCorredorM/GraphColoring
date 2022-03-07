@@ -14,6 +14,5 @@ def graph_from_dimacs(path, name):
 				graph.add_edge(u, v)
 			l = f.readline()
 
-
 	return graph
 				
