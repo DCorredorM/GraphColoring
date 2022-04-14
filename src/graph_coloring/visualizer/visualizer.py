@@ -3,6 +3,7 @@ import networkx as nx
 import os
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
+from pyvis.network import Network
 
 _default_output_path = 'data/outputs'
 _default_out_name = 'coloring'
@@ -56,23 +57,57 @@ def draw_coloring(graph: nx.Graph,
 
 
 class Visualizer:
-    def __init__(self, graph: nx.Graph, pos=None):
-        import matplotlib
-        matplotlib.use('TkAgg')
+    def __init__(self, graph: nx.Graph, pos=None, dynamic=False, pivis=True):
+        # import matplotlib
+        # matplotlib.use('TkAgg')
 
         self.graph = graph
         if pos is None:
             self.pos = nx.spring_layout(graph)
         else:
             self.pos = pos
-
+        self.pivis = pivis
         # Create a figure on screen and set the title
-        self.graph_ax = plt.axes()
-
-    def render(self, coloring: 'Coloring', final=False):
-        self.graph_ax.clear()
+        if dynamic:
+            self.graph_ax = plt.axes()
+        else:
+            self.graph_ax = None
+    
+    def render(self, *args, **kwargs):
+        if self.pivis:
+            self.render_pivis_matrix(*args, **kwargs)
+        else:
+            self.render_mpl_coloring(*args, **kwargs)
+    
+    def render_mpl_coloring(self, coloring: 'Coloring', final=False):
+        if self.graph_ax:
+            self.graph_ax.clear()
         draw_coloring(graph=self.graph, coloring=coloring, pos=self.pos, legend=True, ax=self.graph_ax)
         if not final:
             plt.pause(0.1)
         else:
             plt.show()
+    
+    @staticmethod
+    def render_pivis_matrix(state: 'Coloring', **kwargs):
+        _base_size = 10
+        nt = Network('500px', '800px', **kwargs)
+        # populates the nodes and edges data structures
+        g = state.complement_graph
+        for n in g.nodes:
+            # nodes with same color
+            if n in g.color_idxs:
+                n_c = set(g.nodes[n]['nodes'])
+                g.nodes[n]['label'] = f'{n_c}'
+                g.nodes[n]['title'] = f'Node group {n_c} color {g.color_idxs.index(n)}'
+                g.nodes[n]['size'] = len(n_c) * _base_size
+                g.nodes[n]['group'] = g.color_idxs.index(n) + 1
+            else:
+                n_c = n
+                g.nodes[n]['label'] = f'{n_c}'
+                g.nodes[n]['title'] = f'Lonely node ({n_c})'
+                g.nodes[n]['size'] = 1 * _base_size
+                g.nodes[n]['group'] = 0
+            
+        nt.from_nx(g)
+        return nt.show('net.html')

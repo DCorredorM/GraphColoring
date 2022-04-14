@@ -1,7 +1,7 @@
 from stochopti.discrete_world import mdp
 import networkx as nx
-from graph_coloring.base_class import Coloring
-from graph_coloring.base_class import GraphColoringMDPSpace
+from graph_coloring.dynamics.base_class import Coloring
+from graph_coloring.dynamics.base_class import GraphColoringMDPSpace
 
 import logging 
 logging.basicConfig(level=logging.INFO)

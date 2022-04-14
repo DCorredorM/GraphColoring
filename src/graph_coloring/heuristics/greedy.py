@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .base import BaseHeuristic
-from graph_coloring.base_class import Coloring
+from graph_coloring.dynamics.base_class import Coloring
 from copy import copy
 
 
