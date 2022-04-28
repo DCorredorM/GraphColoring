@@ -61,8 +61,8 @@ class GraphColoringMDPSpace(space.finiteTimeSpace):
     @staticmethod
     def reward_(state, next_state=None, action=None):
         if action is None:
-            return -1
-        return - (len(next_state) - len(state))
+            return 1
+        return len(next_state) - len(state)
     
     def reward(self, state, action=None, time=None):
         if action is None:
@@ -463,7 +463,7 @@ class ComplementGraph(nx.Graph):
         else:
             node_i = self.nodes_to_row[node_to_color]
             node_j = node_i if color_idx >= len(self.color_idxs) else self.color_idxs[color_idx]
-            return (node_i, node_j) in self.edges
+            return not (node_i, node_j) in self.edges
 
     def feasible_colors_for_node(self, node: Any) -> Iterator[int]:
         idx = self.nodes_to_row[node]
@@ -490,4 +490,4 @@ class ComplementGraph(nx.Graph):
                 return -1
             else:
                 return len(set(self.neighbors(node)).intersection(self.color_idxs))
-        return {n: satur(n) for n in self.nodes if n}
+        return {n: satur(n) for n in self.nodes}

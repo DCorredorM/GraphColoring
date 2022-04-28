@@ -4,9 +4,22 @@ import os
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
 from pyvis.network import Network
+import json
+import numpy as np
 
 _default_output_path = 'data/outputs'
 _default_out_name = 'coloring'
+
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 
 def draw_coloring(graph: nx.Graph,
@@ -56,6 +69,15 @@ def draw_coloring(graph: nx.Graph,
         plt.show()
 
 
+def smooth(x_range, y_range, slope: float = 1):
+    x_min, x_max = x_range
+    y_min, y_max = y_range
+
+    def f(x):
+        return y_min + (np.tanh(slope * (x - x_min - (x_max - x_min) / 2)) + 1) * (y_max - y_min) / 2
+    return f
+
+
 class Visualizer:
     def __init__(self, graph: nx.Graph, pos=None, dynamic=False, pivis=True):
         # import matplotlib
@@ -75,7 +97,7 @@ class Visualizer:
     
     def render(self, *args, **kwargs):
         if self.pivis:
-            self.render_pivis_matrix(*args, **kwargs)
+            self.render_pivis_complement(*args, **kwargs)
         else:
             self.render_mpl_coloring(*args, **kwargs)
     
@@ -89,25 +111,46 @@ class Visualizer:
             plt.show()
     
     @staticmethod
-    def render_pivis_matrix(state: 'Coloring', **kwargs):
+    def render_pivis_complement(state: 'Coloring', **kwargs):
         _base_size = 10
+        s = smooth(x_range=(1, max(state.graph.degree())[1]), y_range=(10, 30))
         nt = Network('500px', '800px', **kwargs)
         # populates the nodes and edges data structures
-        g = state.complement_graph
+        graph = state.complement_graph
+        g = nx.Graph()
+        g.add_edges_from(graph.edges)
         for n in g.nodes:
             # nodes with same color
-            if n in g.color_idxs:
-                n_c = set(g.nodes[n]['nodes'])
+            if n in graph.color_idxs:
+                n_c = set(map(int, graph.nodes[n]['nodes']))
                 g.nodes[n]['label'] = f'{n_c}'
-                g.nodes[n]['title'] = f'Node group {n_c} color {g.color_idxs.index(n)}'
-                g.nodes[n]['size'] = len(n_c) * _base_size
-                g.nodes[n]['group'] = g.color_idxs.index(n) + 1
+                g.nodes[n]['title'] = f'Node group {n_c} color {graph.color_idxs.index(n)}'
+                g.nodes[n]['size'] = s(len(n_c))
+                g.nodes[n]['group'] = graph.color_idxs.index(n) + 1
             else:
                 n_c = n
                 g.nodes[n]['label'] = f'{n_c}'
                 g.nodes[n]['title'] = f'Lonely node ({n_c})'
-                g.nodes[n]['size'] = 1 * _base_size
+                g.nodes[n]['size'] = s(1)
                 g.nodes[n]['group'] = 0
             
         nt.from_nx(g)
-        return nt.show('net.html')
+        return nt.show('complement.html')
+
+    @staticmethod
+    def render_pivis_graph(graph, coloring=None, **kwargs):
+        nt = Network('500px', '800px', **kwargs)
+        # populates the nodes and edges data structures
+        
+        g = nx.Graph()
+        g.add_edges_from(graph.edges)
+        
+        if coloring:
+            for n in g.nodes:
+                # nodes with same color
+                color = coloring(n)
+                color = 0 if color is None else color + 1
+                g.nodes[n]['group'] = int(color)
+    
+        nt.from_nx(g)
+        return nt.show('graph.html')

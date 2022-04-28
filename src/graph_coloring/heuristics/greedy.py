@@ -1,31 +1,34 @@
+import numpy as np
 from typing import Optional
 
 from .base import BaseHeuristic
-from graph_coloring.dynamics.base_class import Coloring
+from graph_coloring.dynamics.base_class import Coloring, GraphColoringMDPSpace
 from copy import copy
 
 
 class GreedyColoring(BaseHeuristic):
-	def __init__(self, graph, **kwargs):
-		super().__init__(graph, **kwargs)
+    def __init__(self, graph, **kwargs):
+        super().__init__(graph, **kwargs)
 
-	def run_heuristic(self, partial_coloring: Optional = None) -> Coloring:
-		graph = self.graph
-		if partial_coloring is None:
-			coloring = Coloring(graph)
-		else:
-			coloring = copy(partial_coloring)
+    def run_heuristic(self, partial_coloring: Optional = None) -> Coloring:        
+        coloring = self.run_heuristic_n_steps(partial_coloring)
 
-		no_color = set(graph.nodes).difference(coloring.colored_nodes)
-
-		for n in no_color:
-			neighbor_colors = [coloring(n_) for n_ in graph.neighbors(n) if n_ in coloring.colored_nodes]
-			color_n = 0
-			while True:
-				if color_n in neighbor_colors:
-					color_n += 1
-				else:
-					coloring.color_node(n, color_n)
-					break
-
-		return coloring
+        return coloring
+    
+    def run_heuristic_n_steps(self, partial_coloring: Optional = None, n: int = np.inf) -> Coloring:
+        graph = self.graph
+        if partial_coloring is None:
+            coloring = Coloring(graph)
+        else:
+            coloring = copy(partial_coloring)        
+        
+        n = min(n, len(graph.nodes) - len(coloring.colored_nodes))
+        i = 0
+        while i < n:
+            # Uses DS-tour to choose next node.
+            v_t = GraphColoringMDPSpace.ds_tour_sequence(coloring)
+            color = min(coloring.feasible_colors_for_node(v_t))
+            coloring.color_node(v_t, color)
+            i += 1
+        
+        return coloring
