@@ -1,7 +1,9 @@
+import os
+
 import logging
 
 import sys
-sys.path.append('mdp')
+sys.path.append('../mdp')
 
 from copy import copy, deepcopy
 from typing import Any, List, Iterator
@@ -21,6 +23,8 @@ try:
 except:
     print(sys.path)
     from stochopti.discrete_world import space
+    import os
+    print(os.getcwd())
 
 
 class GraphColoringMDPSpace(space.finiteTimeSpace):
