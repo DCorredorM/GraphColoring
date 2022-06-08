@@ -11,7 +11,7 @@ class FunctionApproximation(ABC):
     def __init__(self, graph):
         self.graph = graph
         self._cost_to_go_cache = dict()
-        self.timer = Timer(name=self.__class__.__name__)
+        self.timer = Timer(name=self.__class__.__name__, verbose=False)
     
     def __call__(self, partial_coloring: Optional = None, **kwargs) -> int:
         return self.reward_to_go(partial_coloring, **kwargs)
@@ -41,9 +41,9 @@ class FunctionApproximation(ABC):
         cost_to_go = self._cost_to_go_cache.get(_key, None)
         if cost_to_go is None:
             initial_colors = len(partial_coloring)
-            self.timer.start()
+            # self.timer.start()
             full = self._compute_reward_to_go(partial_coloring)
-            self.timer.stop()
+            # self.timer.stop()
             if truncate:
                 cost_to_go = max(full - initial_colors, 0)
                 self._cost_to_go_cache[_key] = cost_to_go
@@ -85,9 +85,9 @@ class BaseHeuristic(FunctionApproximation, ABC):
         cost_to_go = self._cost_to_go_cache.get(_key, None)
         if cost_to_go is None:
             initial_colors = len(partial_coloring)
-            self.timer.start()
+            # self.timer.start()
             coloring = self.run_heuristic(partial_coloring)
-            self.timer.stop()
+            # self.timer.stop()
             cost_to_go = len(coloring) - initial_colors
             self._cost_to_go_cache[_key] = cost_to_go
         

@@ -1,18 +1,22 @@
 import logging
 
+import sys
+sys.path.append('mdp')
+
 from copy import copy, deepcopy
-from typing import Any, List, Generator, Iterator
+from typing import Any, List, Iterator
 from itertools import product
 
 import networkx as nx
-from scipy.sparse import csr_matrix, diags
+from scipy.sparse import diags
 
-from stochopti.discrete_world import space
 from gym import Space, Env
 from gym.spaces import Discrete
 import numpy as np
 
 from graph_coloring.visualizer import Visualizer
+
+from stochopti.discrete_world import space
 
 
 class GraphColoringMDPSpace(space.finiteTimeSpace):
