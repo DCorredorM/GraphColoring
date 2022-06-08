@@ -16,7 +16,11 @@ import numpy as np
 
 from graph_coloring.visualizer import Visualizer
 
-from stochopti.discrete_world import space
+try:
+    from mdp.stochopti.discrete_world import space
+except:
+    print(sys.path)
+    from stochopti.discrete_world import space
 
 
 class GraphColoringMDPSpace(space.finiteTimeSpace):
