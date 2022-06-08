@@ -79,6 +79,9 @@ def smooth(x_range, y_range, slope: float = 1):
 
 
 class Visualizer:
+    HEIGHT = 500
+    WIDTH = 500
+    
     def __init__(self, graph: nx.Graph, pos=None, dynamic=False, pivis=True):
         # import matplotlib
         # matplotlib.use('TkAgg')
@@ -111,11 +114,19 @@ class Visualizer:
             plt.show()
     
     @staticmethod
+    def to_text_px(size):
+        return f'{size}px'
+    
+    @staticmethod
     def render_pivis_complement(state: 'Coloring', **kwargs):
         os.makedirs(_default_output_path, exist_ok=True)
         _base_size = 10
         s = smooth(x_range=(1, max(state.graph.degree())[1]), y_range=(10, 30))
-        nt = Network('500px', '800px', **kwargs)
+        nt = Network(
+            Visualizer.to_text_px(Visualizer.HEIGHT),
+            Visualizer.to_text_px(Visualizer.WIDTH),
+            notebook=True
+        )
         # populates the nodes and edges data structures
         graph = state.complement_graph
         g = nx.Graph()
@@ -142,8 +153,12 @@ class Visualizer:
     @staticmethod
     def render_pivis_graph(graph, coloring=None, **kwargs):
         os.makedirs(_default_output_path, exist_ok=True)
-        
-        nt = Network('500px', '800px', **kwargs)
+
+        nt = Network(
+            Visualizer.to_text_px(Visualizer.HEIGHT),
+            Visualizer.to_text_px(Visualizer.WIDTH),
+            notebook=True
+        )
         # populates the nodes and edges data structures
         
         g = nx.Graph()

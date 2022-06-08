@@ -21,10 +21,7 @@ from graph_coloring.visualizer import Visualizer
 try:
     from mdp.stochopti.discrete_world import space
 except:
-    print(sys.path)
     from stochopti.discrete_world import space
-    import os
-    print(os.getcwd())
 
 
 class GraphColoringMDPSpace(space.finiteTimeSpace):

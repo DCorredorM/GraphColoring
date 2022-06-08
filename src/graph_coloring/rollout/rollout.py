@@ -290,14 +290,16 @@ class RolloutLB(RolloutColoring):
         coloring = self.env.reset()
         self.path.append(coloring)
         done = False
+        ub = float('inf')
+        lb = float('-inf')
 
         while not done:
             action = self.roll_out(coloring)
             coloring, cost, done, info = self.env.step(action)
             self.path.append(coloring)
             
-            lb = self.lower_bound(coloring)
-            ub = self.heuristic(coloring)
+            lb = max(lb, len(coloring) + self.lower_bound(coloring))
+            ub = min(ub, len(coloring) + self.heuristic(coloring))
             if ub - lb < 1:
                 coloring = self.heuristic.run_heuristic(partial_coloring=coloring)
                 break
@@ -305,8 +307,20 @@ class RolloutLB(RolloutColoring):
         return coloring
     
     def bounds_plot(self, optimal_value=None):
-        lb = [len(p) + self.lower_bound(p) for p in self.path]
-        ub = [len(p) + self.heuristic(p) for p in self.path]
+        lb = []
+        ub = []
+        
+        for p in self.path:
+            if len(lb) > 0:
+                lb.append(max(lb[-1], len(p) + self.lower_bound(p)))
+            else:
+                lb.append(len(p) + self.lower_bound(p))
+            
+            if len(ub) > 0:
+                ub.append(min(ub[-1], len(p) + self.heuristic(p)))
+            else:
+                ub.append(len(p) + self.heuristic(p))
+        
         x = range(len(lb))
         fig, ax = plt.subplots(figsize=(12, 8))
         ax.plot(x, lb, label='Lower Bound')

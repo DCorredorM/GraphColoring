@@ -99,13 +99,6 @@ def spectral_bounds():
         print(sb.reward_to_go(c), heuristic.reward_to_go(c))
     else:
         suggested.is_coloring(False)
-    
-
-def lp():
-    g = nx.generators.random_graphs.erdos_renyi_graph(100, 0.2, seed=754)
-    m = GCFormulation(g, integrality=True)
-    
-    print(m.solve())
 
 
 def graph_gen():

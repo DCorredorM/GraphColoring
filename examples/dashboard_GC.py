@@ -33,7 +33,7 @@ class _SectionBase:
         out = widgets.VBox([
             widgets.HBox(list(self.widgets.values())),
             self.out
-        ], layout=_SectionBase.OUT_LAYOUT)
+        ])
 
         self.update_output()
         return out
@@ -166,23 +166,24 @@ class ComplementGraph(_SectionBase):
     def update_output(self):
         with self.out:
             self.out.clear_output(True)
-            display(Visualizer.render_pivis_graph(self.graph, self.coloring, notebook=True))
-        
-        with self.out2:
-            self.out2.clear_output(True)
             display(Visualizer.render_pivis_complement(self.coloring, notebook=True))
             
-        with self.out3:
-            self.out3.clear_output(True)
-            if self.widgets['lb'].value:
-                self.plot_lb()
+        with self.out2:
+            self.out2.clear_output(True)
+            display(Visualizer.render_pivis_graph(self.graph, self.coloring, notebook=True))
+            
+            
+        # with self.out3:
+        #     self.out3.clear_output(True)
+        #     if self.widgets['lb'].value:
+        #         self.plot_lb()
+    
     
     def display(self):
         out = widgets.VBox([
             widgets.HBox(list(self.widgets.values())),
-            widgets.HBox([self.out, self.out2]),
-            self.out3
-        ], layout=_SectionBase.OUT_LAYOUT)
+            widgets.HBox([self.out2, self.out])
+        ])
     
         self.update_output()
         return out
