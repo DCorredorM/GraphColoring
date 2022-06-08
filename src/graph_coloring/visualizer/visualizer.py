@@ -112,6 +112,7 @@ class Visualizer:
     
     @staticmethod
     def render_pivis_complement(state: 'Coloring', **kwargs):
+        os.makedirs(_default_output_path, exist_ok=True)
         _base_size = 10
         s = smooth(x_range=(1, max(state.graph.degree())[1]), y_range=(10, 30))
         nt = Network('500px', '800px', **kwargs)
@@ -135,10 +136,13 @@ class Visualizer:
                 g.nodes[n]['group'] = 0
             
         nt.from_nx(g)
-        return nt.show('complement.html')
+        file = os.path.join(_default_output_path, 'complement.html')
+        return nt.show(file)
 
     @staticmethod
     def render_pivis_graph(graph, coloring=None, **kwargs):
+        os.makedirs(_default_output_path, exist_ok=True)
+        
         nt = Network('500px', '800px', **kwargs)
         # populates the nodes and edges data structures
         
@@ -153,4 +157,5 @@ class Visualizer:
                 g.nodes[n]['group'] = int(color)
     
         nt.from_nx(g)
-        return nt.show('graph.html')
+        file = os.path.join(_default_output_path, 'graph.html')
+        return nt.show(file)
